@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: subscription_manager_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      - db
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: subscription_manager_mailpit
+    ports:
+      - "8025:8025"  
+      - "1025:1025"
+    environment:
+      MAILPIT_SMTP_PORT: 1025
+      MAILPIT_WEB_PORT: 8025

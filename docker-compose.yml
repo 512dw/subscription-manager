@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: subscription_manager_app
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
+    environment:
+      APP_ENV: prod
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  nginx:
+    image: nginx:latest
+    container_name: subscription_manager_nginx
+    ports:
+      - "${APP_PORT}:80" 
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/templates/default.conf.template
+      - .:/var/www/html
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: subscription_manager_db
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  redis:
+    image: redis:6.2
+    container_name: subscription_manager_redis
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: subscription_manager_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672" 
+      - "${RABBITMQ_PORT}:5672"   
+
+volumes:
+  db_data:
